@@ -5,8 +5,8 @@ from payments.models import *
 from django.conf import settings
 
 bot = TeleBot(settings.TELEGRAM_TOKEN)
-bot.set_webhook("https://neggod.site:443/tg/1269306538:AAE2JTn6nF61E_d3AZk7bHUwLFrKy2W0GPM/",
-                certificate=(open('', 'r')))
+# bot.set_webhook("https://neggod.site:443/tg/1269306538:AAE2JTn6nF61E_d3AZk7bHUwLFrKy2W0GPM/",
+#                 certificate=(open('', 'r')))
 
 
 def generate_first_keyboard():
