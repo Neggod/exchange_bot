@@ -22,7 +22,48 @@ def yandex_money_generate(request):
 def webmoney_generate(request):
     print(request)
 
+
 def test_generate(request: WSGIRequest, system):
     print(system)
     print(request.path)
     return render(request, "payments/hello.html", {'system': system})
+
+
+def validate_form(request: WSGIRequest):
+    """
+    Обработчик формы введенных в бота данных
+    :param request:
+    :return:
+    """
+    render(request, "payments/payment.html")
+
+
+def success_payment(request: WSGIRequest):
+    """
+    Обработчик успешного платежа
+    :param request:
+    :return:
+    """
+    return render(request, 'payments/payment_status/success.html')
+
+
+def fail_payment(request: WSGIRequest):
+    """
+    Обработчик неуспешного платежа
+    :param request:
+    :return:
+    """
+    return render(request, "payments/payment_status/fail.html")
+
+
+def status_payment(request: WSGIRequest):
+    """
+    Обработчик статуса платежа
+    :param request:
+    :return:
+    """
+
+    return render(request, "payments/payment_status/status.html")
+
+
+
