@@ -59,7 +59,7 @@ def callback_valute_handle(call: CallbackQuery):
 def callback_system_handle(call: CallbackQuery):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     link = settings.MY_DOMAIN + "payment/" + call.data.split(":")[-1] + "/"
-    kb = types.InlineKeyboardMarkup(types.InlineKeyboardButton("Оформить перевод", url=link))
+    kb = types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("Оформить перевод", url=link))
 #                                                               url=settings.MY_DOMAIN + "payment/" + call.data.split(":")[-1]+'/'))
     bot.send_message(call.message.chat.id, "Оформить перевод по ссылке.", reply_markup=kb)
 

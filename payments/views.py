@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from http.client import HTTPResponse
 
 from django.contrib.auth.decorators import permission_required
@@ -11,8 +12,6 @@ from django.shortcuts import render, redirect
 @permission_required('admin.can_add_log_entry')
 def qiwi_generate(request: WSGIRequest):
     comment = request.GET.get('qw')[0]
-    return redirect(f'https://oplata.qiwi.com/create?publicKey'
-                    f'=48e7qUxn9T7RyYE1MVZswX1FRSbE6iyCj2gCRwwF3Dnh5XrasNTx3BGPiMsyXQFNKQhvukniQG8RTVhYm3iPwoVBExVL34tUKumGQDNiKkb4rn4aeGLkPkKhFQUUGi8f8WtvSJRvJ7ZVxosik4Fx6c6w2dLHK2PzKi4667BiUcEmddjcFVR2QkPvWvfxX&billid=123123123&amount=300&comment={comment}')
 
 
 def yandex_money_generate(request):
@@ -29,13 +28,38 @@ def test_generate(request: WSGIRequest, system):
     return render(request, "payments/hello.html", {'system': system})
 
 
+def obmenka_payment_generate():
+    pass
+
+def westwallet_payment_generate():
+    pass
+
+def ad_system_payment_generate():
+    pass
+
+PAYMENT_SYSTEMS = {
+
+}
+
 def validate_form(request: WSGIRequest):
     """
     Обработчик формы введенных в бота данных
     :param request:
     :return:
     """
-    render(request, "payments/payment.html")
+    # data_dict = OrderedDict()
+    # data_dict["CLIENT_ID"] = str(variables.ACQUIRING_CLIENT_NUM)
+    # data_dict["INVOICE_ID"] = exchange.uuid
+    # data_dict["AMOUNT"] = str(exchange.value)
+    # data_dict["CURRENCY"] = "RUR"
+    # data_dict["PAYMENT_CURRENCY"] = Cur[exchange.payment_method]["name"]
+    # data_dict["SUCCESS_URL"] = f"https://t.me/{bot_name}"
+    # data_dict["FAIL_URL"] = f"https://t.me/{bot_name}"
+    # data_dict["STATUS_URL"] = f"{variables.SELF_URL}{reverse('validate')}?invoice={exchange_uuid}"
+    # data_string = "".join(data_dict.values())
+    # data_dict["SIGN_ORDER"] = ";".join(data_dict.keys())
+    # data_dict["SIGN"] = generate_sign(data_string)
+    return render(request, "payments/payment.html")
 
 
 def success_payment(request: WSGIRequest):
