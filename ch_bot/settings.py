@@ -141,7 +141,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
-
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
 # Variables of payment systems
 
 # OBMENKA
