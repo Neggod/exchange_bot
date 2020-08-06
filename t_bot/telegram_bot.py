@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 bot = TeleBot(settings.TELEGRAM_TOKEN)
-bot_info = bot.get_me()
+# bot_info = bot.get_me()
 
 
 # bot.set_webhook("https://neggod.site:443/tg/1269306538:AAE2JTn6nF61E_d3AZk7bHUwLFrKy2W0GPM/",

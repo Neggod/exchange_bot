@@ -21,7 +21,8 @@ class PaymentSystem(models.Model):
     pay_system_flag = models.CharField(verbose_name='Короткое название системы на английском языке.',
                                        help_text=' Не больше 10 знаков',
                                        max_length=10)
-    wallet = models.CharField(verbose_name="Номер кошелька", max_length=30, blank=True, null=True)
+
+    is_user_payment_system = models.BooleanField(verbose_name="Доступна ли система как пользовательская", default=False)
 
     def __str__(self):
         return f"Платёжная система: {self.pay_system}"
@@ -29,6 +30,13 @@ class PaymentSystem(models.Model):
     class Meta:
         verbose_name = 'Платёжная система'
         verbose_name_plural = 'Платёжные системы'
+
+
+class UserPaymentSystem(models.Model):
+    owner = models.ForeignKey(TelegramUser, on_delete=models.DO_NOTHING, verbose_name="Пользователь")
+    payment_system = models.ForeignKey(PaymentSystem, on_delete=models.DO_NOTHING, related_name="+",
+                                       verbose_name="Пользовательская платжная система")
+    wallet = models.CharField(verbose_name="Номер кошелька", max_length=30, blank=True, null=True)
 
 
 # Create your models here.
@@ -51,6 +59,7 @@ class Currency(models.Model):
     currency = models.CharField(verbose_name="Название валюты", max_length=75)
     currency_code = models.CharField(verbose_name='Трёхбуквенный код валюты',
                                      help_text='RMB, USD, EUR, RUB etc', max_length=5)
+    is_user_currency = models.BooleanField(verbose_name="Доступна ли валюта для перевода пользователем", default=False)
 
     def __str__(self):
         return f"Валюта {self.currency}"
@@ -110,10 +119,10 @@ class Exchange(models.Model):
         return f'Перевод пользователя {self.owner} из ' \
                f'{self.payment_system_from.payment_system} в {self.payment_system_to.payment_system}'
 
-
     class Meta:
         verbose_name = 'Перевод между системами'
         verbose_name_plural = "Переводы между системами"
+
 
 class Rate(models.Model):
     """
@@ -158,6 +167,3 @@ class Comission(models.Model):
         verbose_name = 'Комиссия и минимальная сумма'
         verbose_name_plural = "Комиссии и минимальные суммы"
         default_manager_name = "objects"
-
-
-

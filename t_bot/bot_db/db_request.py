@@ -1,10 +1,11 @@
 from telebot.types import Message, CallbackQuery
 
-from payments.models import Currency
+from payments.models import Currency, PaymentSystem
 from t_bot.models import TelegramUser
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 # TODO add loggers
 def get_user_from_db(msg: Message):
@@ -25,3 +26,6 @@ def get_user_from_db(msg: Message):
 def get_all_currencies_from_db():
     return Currency.objects.all()
 
+
+def get_all_allowed_for_user_payment_systems():
+    return PaymentSystem.objects.filter(is_user_payment_system=True)
