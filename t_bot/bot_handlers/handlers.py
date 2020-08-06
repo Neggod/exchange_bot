@@ -1,9 +1,9 @@
-<<<<<<< HEAD
+
 from t_bot.telegram_bot import bot
 import logging
 
 logger = logging.getLogger(__name__)
-=======
+
 import logging
 from telebot.types import Message, CallbackQuery
 
@@ -42,4 +42,4 @@ def get_currency_from_user(call: CallbackQuery):
     :return:
     """
     pass
->>>>>>> 421c4ab1af272dacf091a97d390a9ca987fde144
+
