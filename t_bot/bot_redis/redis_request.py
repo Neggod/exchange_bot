@@ -74,3 +74,8 @@ def save_exchange_to_db(*args, **kwargs):
     pass
 
 
+def get_payment_systems_from_redis():
+    payment_systems = REDIS_STORAGE.get("systems")
+    if payment_systems:
+        return payment_systems
+    raise ValueError("Haven't payment systems in redis")

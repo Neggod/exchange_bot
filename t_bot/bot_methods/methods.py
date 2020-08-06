@@ -1,5 +1,8 @@
 from t_bot.models import TelegramUser
-from t_bot.telegram_bot import bot
+from t_bot.telegram_bot import bot, bot_info
+from t_bot import bot_messages
+from t_bot import bot_keyboards
+from telebot.apihelper import ApiException
 
 import logging
 
@@ -12,7 +15,14 @@ def send_welcome(user: TelegramUser):
     :param user:
     :return:
     """
-    pass
+    kb = bot_keyboards.generate_payment_systems_keyboard()
+    try:
+        bot.send_message(user.tg_id, bot_messages.WELCOME_MESSAGE, reply_markup=kb)
+    except ApiException:
+        logger.error(f"Cannot send message to user {user}")
+    except Exception as err:
+        logger.error(err)
+    return
 
 
 def send_start_exchanging(user: TelegramUser):

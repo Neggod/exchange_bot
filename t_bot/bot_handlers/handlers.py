@@ -7,7 +7,7 @@ import logging
 from telebot.types import Message, CallbackQuery
 
 from t_bot.bot_db import get_user_from_db
-from t_bot.bot_methods import send_welcome
+from t_bot import bot_methods
 from t_bot.telegram_bot import bot
 from t_bot.bot_redis import REDIS_STORAGE
 
@@ -21,7 +21,7 @@ def start_handler(msg: Message):
         logger.info(
             f"User {'@' + user.username if user.username else user.first_name + ' ' + user.last_name} was created")
         bot.send_message(user.tg_id, "Это приветственное сообщение для новых юзеров. Должно отправиться один раз.")
-    send_welcome(user)
+    bot_methods.send_welcome(user)
 
 
 @bot.message_handler(lambda msg: msg.isdigit())
@@ -44,6 +44,6 @@ def get_currency_from(call: CallbackQuery):
     """
     pass
 
-
+@bot.callback_query_handler(lambda call: call.data.startswith("system"))
 def get_user_payment_system(call: CallbackQuery):
     pass
