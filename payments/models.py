@@ -3,7 +3,8 @@ from decimal import Decimal
 from django.db import models
 from .choices import *
 
-from t_bot.models import *
+from t_bot.models import TelegramUser
+
 """
 user -> payment
 payment: from - to - amount - date_create - date_update - status
@@ -14,10 +15,13 @@ comission
 
 """
 
+
 class PaymentSystem(models.Model):
-    pay_system = models.CharField(verbose_name="Название платёжной системы", max_length=75)
-    pay_system_flag = models.CharField(verbose_name='Короткое название системы на английском языке. 10 знаков',
-                                       max_length=10, default='')
+    pay_system = models.CharField(verbose_name="Название платёжной системы", max_length=50)
+    pay_system_flag = models.CharField(verbose_name='Короткое название системы на английском языке.',
+                                       help_text=' Не больше 10 знаков',
+                                       max_length=10)
+    wallet = models.CharField(verbose_name="Номер кошелька", max_length=30, blank=True, null=True)
 
     def __str__(self):
         return f"Платёжная система: {self.pay_system}"
@@ -57,7 +61,6 @@ class Currency(models.Model):
 
 
 class Status(models.Model):
-
     STATUSES = [
         (0, "Новый платёж"),
         (1, "В обработке"),
@@ -66,7 +69,6 @@ class Status(models.Model):
     ]
 
     value = models.IntegerField(verbose_name="Статус платежа", choices=STATUSES, unique=True, default=0)
-
 
     def __str__(self):
         return f"Статус: {self.STATUSES[self.value]}"
@@ -90,10 +92,11 @@ class Exchange(models.Model):
     amount = models.DecimalField(verbose_name="Сумма отправления",
                                  default=Decimal(1.0),
                                  max_digits=10,
-                                 decimal_places=2)
+                                 decimal_places=5)
     created = models.DateTimeField(verbose_name="Дата создания платежа", auto_now_add=True)
     updated = models.DateTimeField(verbose_name="Дата последнего изменения", auto_now=True)
-    status =  models.ForeignKey(Status, verbose_name="Статус платежа", on_delete=models.PROTECT)
+    status = models.ForeignKey(Status, verbose_name="Статус платежа", on_delete=models.PROTECT)
+
     # course = models.DecimalField(verbose_name="Курс обмена",
     #                              help_text='валюта отправления * на курс обмена = валюта получения',
     #                              default=Decimal(1.0),
@@ -107,13 +110,32 @@ class Exchange(models.Model):
         return f'Перевод пользователя {self.owner} из ' \
                f'{self.payment_system_from.payment_system} в {self.payment_system_to.payment_system}'
 
+
     class Meta:
         verbose_name = 'Перевод между системами'
         verbose_name_plural = "Переводы между системами"
 
+class Rate(models.Model):
+    """
+    Тут будет курс обмена рубля к крипте
+    """
+    currency_from = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name="+",
+                                      verbose_name="Валюта списания")
+    currency_to = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name="+",
+                                    verbose_name="Валюта получения")
+    rate = models.DecimalField(verbose_name="Курс обмена",
+                               help_text='валюта отправления * на курс обмена = валюта получения', max_digits=10,
+                               decimal_places=6)
+
+    def __str__(self):
+        return f"Курс обмена {self.currency_from} на {self.currency_to}"
+
+    class Meta:
+        verbose_name = "Курс обмена"
+        verbose_name_plural = "Курсы обмена"
+
 
 class Comission(models.Model):
-
     value = models.DecimalField(verbose_name="Значение комиссии в %", help_text="5.23 == 5.53%",
                                 max_digits=5, decimal_places=2)
     _from = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система, ОТКУДА совершается перевод",
@@ -136,4 +158,6 @@ class Comission(models.Model):
         verbose_name = 'Комиссия и минимальная сумма'
         verbose_name_plural = "Комиссии и минимальные суммы"
         default_manager_name = "objects"
+
+
 

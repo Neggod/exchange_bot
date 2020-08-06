@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 bot = TeleBot(settings.TELEGRAM_TOKEN)
 bot_info = bot.get_me()
 
+
 # bot.set_webhook("https://neggod.site:443/tg/1269306538:AAE2JTn6nF61E_d3AZk7bHUwLFrKy2W0GPM/",
 #                 certificate=(open('', 'r')))
 
@@ -84,7 +85,6 @@ def send_warning(user: TelegramUser, step: str, value: str):
     start_hello(user)
 
 
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith("currency"))
 def callback_valute_handle(call: CallbackQuery):
     # logger.info(f"User {'@' + user.username if user.username else user.first_name + ' ' + user.last_name} check currency")
@@ -100,7 +100,6 @@ def callback_valute_handle(call: CallbackQuery):
     else:
         logger.warning(f"User {user.username} send {currency}")
         send_warning(user, step='currency', value=currency)
-        
 
     # send_systems(user)
 

@@ -1,3 +1,8 @@
+from t_bot.telegram_bot import bot
+import logging
+
+logger = logging.getLogger(__name__)
+
 import logging
 from telebot.types import Message, CallbackQuery
 
@@ -5,6 +10,7 @@ from t_bot.bot_db import get_user_from_db
 from t_bot.bot_methods import send_welcome
 from t_bot.telegram_bot import bot
 from t_bot.bot_redis import REDIS_STORAGE
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,8 +45,5 @@ def get_currency_from(call: CallbackQuery):
     pass
 
 
-@bot.callback_query_handler(lambda call: call.data and REDIS_STORAGE.get(call.message.from_user.id))
 def get_user_payment_system(call: CallbackQuery):
     pass
-
-

@@ -1,6 +1,6 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
 
-from t_bot.bot_db import get_currency_from_db, Currency
+from t_bot.bot_db import get_all_currencies_from_db, Currency
 from t_bot.bot_redis.redis_request import get_currency_from_redis
 
 import logging
@@ -14,7 +14,7 @@ def generate_currency_keyboard():
     try:
         currency = get_currency_from_redis()
     except ValueError:
-        currency = get_currency_from_db()
+        currency = get_all_currencies_from_db()
     else:
         if currency and isinstance(currency[0], str):
             for curr in currency:

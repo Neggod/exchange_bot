@@ -1,4 +1,4 @@
-from telebot.types import Message
+from telebot.types import Message, CallbackQuery
 
 from payments.models import Currency
 from t_bot.models import TelegramUser
@@ -22,5 +22,6 @@ def get_user_from_db(msg: Message):
         return user, True
 
 
-def get_currency_from_db():
+def get_all_currencies_from_db():
     return Currency.objects.all()
+
