@@ -118,7 +118,7 @@ class PaymentSystemAPI(models.Model):
     )
     id = models.IntegerField(verbose_name="Тип апи", choices=_API, default=0, unique=True)
     name = models.CharField(verbose_name="Название апи", max_length=50)
-    currency = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система",
+    payment_system = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система",
                                  help_text="Приоритет для данной системы", on_delete=models.CASCADE)
     rate = models.ForeignKey(Rate, verbose_name="Курс обмена", on_delete=models.DO_NOTHING)
     comission = models.ForeignKey(Comission, on_delete=models.DO_NOTHING, default=50, verbose_name="Комиссия за перевод")
