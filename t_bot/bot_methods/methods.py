@@ -2,6 +2,7 @@ from t_bot.models import TelegramUser
 from t_bot.telegram_bot import bot, bot_info
 from t_bot import bot_messages
 from t_bot import bot_keyboards
+from t_bot import bot_redis
 from telebot.apihelper import ApiException
 
 import logging
@@ -15,9 +16,9 @@ def send_welcome(user: TelegramUser):
     :param user:
     :return:
     """
-    kb = bot_keyboards.generate_payment_systems_keyboard()
+    kb = bot_keyboards.generate_start_exchanging()
     try:
-        bot.send_message(user.tg_id, bot_messages.WELCOME_MESSAGE, reply_markup=kb)
+        bot.send_message(user.tg_id, bot_messages.WELCOME_MESSAGE.format(name=bot_info.username), reply_markup=kb)
     except ApiException:
         logger.error(f"Cannot send message to user {user}")
     except Exception as err:
@@ -25,13 +26,24 @@ def send_welcome(user: TelegramUser):
     return
 
 
-def send_start_exchanging(user: TelegramUser):
+def send_error(user_id):
+    bot.send_message(user_id, bot_messages.ANY_ERROR_MESSAGE)
+    return
+
+
+def send_start_exchanging(user_id):
     """
     It first message for exchanging
     :param user:
     :return:
     """
-    pass
+    bot_redis.create_new_exchange(user_id)
+    kb = bot_keyboards.generate_payment_systems_keyboard()
+    if kb:
+        bot.send_message(user_id, bot_messages.PAYMENT_METHOD_MESSAGE, reply_markup=kb)
+    else:
+        send_error(user_id)
+    return
 
 
 def get_currency_from():
@@ -50,7 +62,7 @@ def get_amount_currency_from():
     pass
 
 
-def get_system_from():
+def get_payment_system_and_send_currency(user_id):
     """
     Here ask user system from
     :return:

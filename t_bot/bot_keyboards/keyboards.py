@@ -15,16 +15,21 @@ def generate_payment_systems_keyboard():
     systems = None
     try:
         systems = redis_request.get_payment_systems_from_redis()
+        for r_system in systems:
+            name, code = r_system.split("=")
+            markup.add(InlineKeyboardButton(name, callback_data=f"system:{code}"))
         logger.info("Get systems from redis")
+        return markup
+
     except ValueError:
         logger.info("Haven't system in redis")
         systems = bot_db.get_all_allowed_for_user_payment_systems()
+        for system in systems:
+            markup.add(InlineKeyboardButton(system.pay_system, callback_data=f"system:{system.pay_system_flag}"))
         logger.info("Get systems from db")
     if not systems:
         logger.warning("NOT PAYMENT SYSTEMS NEED ADDED IT")
-        return markup
-    for system in systems:
-        markup.add(InlineKeyboardButton(system.pay_system, callback_data=f"system:{system.pay_system_flag}"))
+        markup = None
 
     return markup
 
@@ -47,12 +52,14 @@ def generate_currency_keyboard():
         for curr in currency:
             curr: Currency
             markup.add(InlineKeyboardButton(curr.currency, callback_data=f"currency:{curr.currency_code}"))
+        return markup
 
     else:
         logger.warning('Havent currencies in redis and db')
         return None
 
 
-
-
-
+def generate_start_exchanging():
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton("Сделать обмен", callback_data="start_exchange"))
+    return markup

@@ -17,7 +17,8 @@ comission
 
 
 class PaymentSystem(models.Model):
-    pay_system = models.CharField(verbose_name="Название платёжной системы", max_length=50)
+    pay_system = models.CharField(verbose_name="Название платёжной системы", help_text="QIWI, YANDEX, etc",
+                                  max_length=50)
     pay_system_flag = models.CharField(verbose_name='Короткое название системы на английском языке.',
                                        help_text=' Не больше 10 знаков',
                                        max_length=10)
@@ -32,27 +33,18 @@ class PaymentSystem(models.Model):
         verbose_name_plural = 'Платёжные системы'
 
 
-class UserPaymentSystem(models.Model):
+class UserWallet(models.Model):
     owner = models.ForeignKey(TelegramUser, on_delete=models.DO_NOTHING, verbose_name="Пользователь")
     payment_system = models.ForeignKey(PaymentSystem, on_delete=models.DO_NOTHING, related_name="+",
-                                       verbose_name="Пользовательская платжная система")
-    wallet = models.CharField(verbose_name="Номер кошелька", max_length=30, blank=True, null=True)
-
-
-# Create your models here.
-class PaymentSystemSettings(models.Model):
-    payment_system = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система",
-                                       on_delete=models.DO_NOTHING, related_name='payment_system')
-    wallet = models.CharField(default='', verbose_name="Номер Кошелька", max_length=255)
-    public_key = models.CharField(verbose_name="Публичный ключ", blank=True, max_length=255)
-    private_key = models.CharField(verbose_name="Приватный ключ", blank=True, max_length=255)
+                                       verbose_name="Пользовательская платeжная система")
+    wallet = models.CharField(verbose_name="Номер кошелька или карты", max_length=30, blank=True, null=True)
 
     def __str__(self):
-        return f'Настройки платёжной системы {self.payment_system.pay_system}'
+        return f"Кошелёк пользователя {self.owner} в {self.payment_system}"
 
     class Meta:
-        verbose_name = f'Настройки какой-то системы.'
-        verbose_name_plural = 'Настройки платёжных систем'
+        verbose_name_plural = 'Кошельки пользователей'
+        verbose_name = "Кошелёк пользователя"
 
 
 class Currency(models.Model):
@@ -67,6 +59,76 @@ class Currency(models.Model):
     class Meta:
         verbose_name = "Валюта"
         verbose_name_plural = "Валюты"
+
+
+class Rate(models.Model):
+    """
+    Тут будет курс обмена рубля к крипте
+    """
+    currency_from = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name="+",
+                                      verbose_name="Валюта списания")
+    currency_to = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name="+",
+                                    verbose_name="Валюта получения")
+    rate = models.DecimalField(verbose_name="Курс обмена",
+                               help_text='валюта отправления * на курс обмена = валюта получения', max_digits=10,
+                               decimal_places=6)
+    min_currency_amount = models.IntegerField(verbose_name="Минимальное значение валюты А", default=100)
+    max_currency_amount = models.IntegerField(verbose_name="Максимальное значение валюты А", default=-1,
+                                              help_text="Указать, если  есть предел у API сиситемя, ОТКУДА "
+                                                        "совершается перевод")
+
+    def __str__(self):
+        return f"Курс обмена {self.currency_from} на {self.currency_to}"
+
+    class Meta:
+        verbose_name = "Курс обмена"
+        verbose_name_plural = "Курсы обмена"
+
+
+class Comission(models.Model):
+    value = models.DecimalField(verbose_name="Значение комиссии в %", help_text="5.23 == 5.53%",
+                                max_digits=5, decimal_places=2)
+    _from = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система, ОТКУДА совершается перевод",
+                              on_delete=models.CASCADE, related_name="+")
+    _to = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система, КУДА совершается перевод",
+                            on_delete=models.CASCADE, related_name="+")
+    currency_from = models.ForeignKey(Currency, verbose_name="Валюта А, которую переводим",
+                                      on_delete=models.CASCADE, related_name="+")
+    currency_to = models.ForeignKey(Currency, verbose_name="Валюта Б, которую получаем",
+                                    on_delete=models.CASCADE, related_name="+")
+
+    def __str__(self):
+        return f"Комиссия и минимальная сумма для перевода {self.currency_from} из {self._from} в {self._to}"
+
+    class Meta:
+        verbose_name = 'Комиссия и минимальная сумма'
+        verbose_name_plural = "Комиссии и минимальные суммы"
+        default_manager_name = "objects"
+
+
+class PaymentSystemAPI(models.Model):
+    """
+    Модель платёных апи (пока 3 штуки)
+    Cюда добавим
+    """
+    _API = (
+        (0, 'Обменка'),
+        (1, 'adgroup'),
+        (2, 'westallet')
+    )
+    id = models.IntegerField(verbose_name="Тип апи", choices=_API, default=0, unique=True)
+    name = models.CharField(verbose_name="Название апи", max_length=50)
+    currency = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система",
+                                 help_text="Приоритет для данной системы", on_delete=models.CASCADE)
+    rate = models.ForeignKey(Rate, verbose_name="Курс обмена", on_delete=models.DO_NOTHING)
+    comission = models.ForeignKey(Comission, on_delete=models.DO_NOTHING, default=50, verbose_name="Комиссия за перевод")
+
+    def __str__(self):
+        return f"Настройки для АПИ Платёжной системы {self.name}"
+
+    class Meta:
+        verbose_name = 'Настройки для АПИ Платёжной системы'
+        verbose_name_plural = "Настройки для АПИ Платёжных систем"
 
 
 class Status(models.Model):
@@ -89,11 +151,10 @@ class Status(models.Model):
 
 class Exchange(models.Model):
     owner = models.ForeignKey(TelegramUser, verbose_name="", on_delete=models.DO_NOTHING, related_name="telegram_user")
-    payment_system_from = models.ForeignKey(PaymentSystem, related_name="payment_system_from",
-                                            on_delete=models.DO_NOTHING, verbose_name="Откуда переводим")
-    payment_system_to = models.ForeignKey(PaymentSystem, on_delete=models.DO_NOTHING,
-                                          related_name="payment_system_to",
-                                          verbose_name="Куда переводим")
+    api = models.ForeignKey(PaymentSystemAPI, related_name="payment_system_from",
+                                            on_delete=models.DO_NOTHING,
+                            verbose_name="Какой АПИ используется")
+
     currency_from = models.ForeignKey(Currency, on_delete=models.DO_NOTHING, verbose_name="Валюта отправления",
                                       related_name="currency_from")
     currency_to = models.ForeignKey(Currency, on_delete=models.DO_NOTHING, verbose_name='Валюта получения',
@@ -116,54 +177,10 @@ class Exchange(models.Model):
     #                                 default=0)
 
     def __str__(self):
-        return f'Перевод пользователя {self.owner} из ' \
-               f'{self.payment_system_from.payment_system} в {self.payment_system_to.payment_system}'
+        return f'Перевод пользователя {self.owner} через  ' \
+               f'{self.api.name}'
 
     class Meta:
         verbose_name = 'Перевод между системами'
         verbose_name_plural = "Переводы между системами"
 
-
-class Rate(models.Model):
-    """
-    Тут будет курс обмена рубля к крипте
-    """
-    currency_from = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name="+",
-                                      verbose_name="Валюта списания")
-    currency_to = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name="+",
-                                    verbose_name="Валюта получения")
-    rate = models.DecimalField(verbose_name="Курс обмена",
-                               help_text='валюта отправления * на курс обмена = валюта получения', max_digits=10,
-                               decimal_places=6)
-
-    def __str__(self):
-        return f"Курс обмена {self.currency_from} на {self.currency_to}"
-
-    class Meta:
-        verbose_name = "Курс обмена"
-        verbose_name_plural = "Курсы обмена"
-
-
-class Comission(models.Model):
-    value = models.DecimalField(verbose_name="Значение комиссии в %", help_text="5.23 == 5.53%",
-                                max_digits=5, decimal_places=2)
-    _from = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система, ОТКУДА совершается перевод",
-                              on_delete=models.CASCADE, related_name="+")
-    _to = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система, КУДА совершается перевод",
-                            on_delete=models.CASCADE, related_name="+")
-    currency_from = models.ForeignKey(Currency, verbose_name="Валюта А, которую переводим",
-                                      on_delete=models.CASCADE, related_name="+")
-    currency_to = models.ForeignKey(Currency, verbose_name="Валюта Б, которую получаем",
-                                    on_delete=models.CASCADE, related_name="+")
-    min_currency_amount = models.IntegerField(verbose_name="Минимальное значение валюты А", default=100)
-    max_currency_amount = models.IntegerField(verbose_name="Максимальное значение валюты А", default=-1,
-                                              help_text="Указать, если  есть предел у API сиситемя, ОТКУДА "
-                                                        "совершается перевод")
-
-    def __str__(self):
-        return f"Комиссия и минимальная сумма для перевода {self.currency_from} из {self._from} в {self._to}"
-
-    class Meta:
-        verbose_name = 'Комиссия и минимальная сумма'
-        verbose_name_plural = "Комиссии и минимальные суммы"
-        default_manager_name = "objects"

@@ -19,4 +19,5 @@ YES_MESSAGE = "Да"
 NO_MESSAGE = "Нет"
 CARD_NUMBER_MESSAGE = "Введи номер карты."
 CARD_CONFIRMATION_MESSAGE = "Оплата будет с карты?"
+ANY_ERROR_MESSAGE = "Произошла какая-то ошибка. Свяжись с @mskspecbort."
 
