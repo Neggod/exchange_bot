@@ -2,7 +2,7 @@ from t_bot.models import TelegramUser
 from t_bot.telegram_bot import bot, bot_info
 from t_bot import bot_messages
 from t_bot import bot_keyboards
-from t_bot import bot_redis
+from t_bot import bot_redis, bot_db
 from telebot.apihelper import ApiException
 
 import logging
@@ -34,10 +34,11 @@ def send_error(user_id):
 def send_start_exchanging(user_id):
     """
     It first message for exchanging
+    :param user_id: 
     :param user:
     :return:
     """
-    bot_redis.create_new_exchange(user_id)
+    bot_redis.create_or_update_new_exchange(user_id)
     kb = bot_keyboards.generate_payment_systems_keyboard()
     if kb:
         bot.send_message(user_id, bot_messages.PAYMENT_METHOD_MESSAGE, reply_markup=kb)
@@ -96,3 +97,10 @@ def send_yes_no():
 
 def approve_last_step(state):
     pass
+
+
+def get_user_currency_from(user_id, payment_system):
+    api = db
+
+    exchange = bot_redis.redis_request.create_or_update_new_exchange(user_id=id, payment_system=)
+    return None

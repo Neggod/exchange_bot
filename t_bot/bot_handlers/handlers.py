@@ -1,4 +1,8 @@
-from t_bot.telegram_bot import bot
+
+comment = """
+В этом модуле только хэндлеры отправкой сообщений и работой с данными занимаются методы
+"""
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -51,10 +55,11 @@ def get_currency_from(call: CallbackQuery):
     :return:
     """
     bot.delete_message(call.message.chat.id, call.message.message_id)
-    pass
+
 
 
 @bot.callback_query_handler(lambda call: call.data.startswith("system"))
 def get_user_payment_system(call: CallbackQuery):
     bot.delete_message(call.message.chat.id, call.message.message_id)
+    bot_methods.methods.get_user_currency_from(call.message.from_user.id, call.data.split(':')[-1])
     pass

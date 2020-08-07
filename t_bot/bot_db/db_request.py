@@ -1,6 +1,6 @@
 from telebot.types import Message, CallbackQuery
 
-from payments.models import Currency, PaymentSystem, Status, Exchange
+from payments.models import Currency, PaymentSystem, Status, Exchange, PaymentSystemAPI
 from t_bot.models import TelegramUser
 from t_bot.bot_redis import EXCHANGE_TEMPLATE, EXCHANGE_TEMPLATE_VALUE
 import logging
@@ -30,6 +30,7 @@ def get_all_currencies_from_db():
 
 def get_all_allowed_for_user_payment_systems():
     return PaymentSystem.objects.filter(is_user_payment_system=True)
+
 
 # EXCHANGE_TEMPLATE = {
 #     "user": None,
@@ -61,6 +62,24 @@ def get_exchange_from_db(user_id, status=0):
         return string.split(":")
 
 
+# EXCHANGE_TEMPLATE = {
+#     "user": None,
+#     "amount": None,
+#     "currency_from": None,
+#     "currency_to": None,
+#     'system': None,
+#     "status": 0
+# }
+
 
 def save_exchange_from_redis(answer):
-    return None
+    user = TelegramUser.objects.get(tg_id=answer['user'])
+    status = Status.objects.get(value=answer['status'])
+    currency_from = Currency.objects.get(currency_code=answer['currency_from'])
+    currency_to = Currency.objects.get(currency_code=answer['currency_to'])
+    payment_system = PaymentSystem.objects.get(pay_system_flag=answer['system'])
+    api = PaymentSystemAPI.objects.get()
+    exchange, flag = Exchange.objects.update_or_create(owner=user, status=status, currency_from=currency_from,
+                                                       payment_system=payment_system, api=api, currency_to=currency_to)
+    logger.info(f"Exchange from user {user} was {'created' if flag else 'updated'}")
+    return exchange, flag

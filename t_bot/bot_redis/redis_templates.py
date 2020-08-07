@@ -2,7 +2,8 @@
 EXCHANGE_TEMPLATE = {
     "user": None,
     "amount": None,
-    "currency": None,
+    "currency_from": None,
+    "currency_to": None,
     'system': None,
     "status": 0
 }
@@ -16,7 +17,12 @@ EXCHANGE_TEMPLATE = {
 # }
 
 EXCHANGE_TEMPLATE_KEY = "exchange:{user}"
-EXCHANGE_TEMPLATE_VALUE = "currency={currency}:amount={amount}:user_system={user_system}:status={status}"
+EXCHANGE_TEMPLATE_VALUE = "currency_from={currency_from}:currency_to={currency_to}:amount={amount}:" \
+                          "user_system={user_system}:status={status}"
+
+SYSTEM_TEMPLATE_KEY = "system:{system}"
+
+CURRENCY_TEMPLATE_KEY = "currency:{currency}"
 
 LONG_LIVE_TTL = 60 * 60 * 24         # время жизни постоянных позиций как системы оплаты, валюты
 SHORT_LIVE_TTL = 60 * 20             # время жизни коротких позиций

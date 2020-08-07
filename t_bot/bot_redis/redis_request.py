@@ -13,6 +13,15 @@ logger = logging.getLogger(__name__)
 REDIS_STORAGE = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, )
 
 
+def create_redis_string_from_dict(dictionary: dict):
+    values = []
+    for k, v in dictionary.items():
+        if k == 'user':
+            continue
+        values.append(f"{k}={v}")
+    return ':'.join(values)
+
+
 def get_user_from_redis(msg):
     user = REDIS_STORAGE.get(msg.from_user.id)
     if user:
@@ -84,7 +93,7 @@ def get_exchange_from_redis(user_id, status=0, *args, **kwargs):
 
     answer = EXCHANGE_TEMPLATE
     for k in answer:
-        answer[k] = None
+        answer[k] = ""
     key = EXCHANGE_TEMPLATE_KEY.format(user=str(user_id))
     values = REDIS_STORAGE.get(key)
     if values:
@@ -101,7 +110,6 @@ def get_exchange_from_redis(user_id, status=0, *args, **kwargs):
     return answer
 
 
-
 def save_exchange_to_db(user_id, *args, **kwargs):
     """
     Здесь мы возьмём данные из редиса и сохраняем в базу (надо сделать в bot_db метод для этого)
@@ -113,7 +121,7 @@ def save_exchange_to_db(user_id, *args, **kwargs):
     """
     answer = EXCHANGE_TEMPLATE
     for k in answer:
-        answer[k] = None
+        answer[k] = ''
     key = EXCHANGE_TEMPLATE_KEY.format(user=str(user_id))
     values = REDIS_STORAGE.get(key)
     if values:
@@ -133,17 +141,11 @@ def save_exchange_to_db(user_id, *args, **kwargs):
     return 0b00
 
 
-
-
-
 def get_payment_systems_from_redis():
     payment_systems = REDIS_STORAGE.get("systems")
     if payment_systems:
         return payment_systems.decode('UTF-8').split(":")
     raise ValueError("Haven't payment systems in redis ")
-
-
-
 
 
 def set_payment_systems_to_redis(value):
@@ -156,7 +158,14 @@ def set_payment_systems_to_redis(value):
         raise ValueError(f"Unknown value: {value}")
 
 
-def create_new_exchange(user_id: int):
+def create_or_update_new_exchange(user_id: int, **kwargs):
     # exchange = EXCHANGE_TEMPLATE['user_id'] = user_id
     # тут какой-то метод для добавления в сторадже
-    return None
+    exchange = get_exchange_from_redis(user_id)
+    for k in exchange:
+        if k in kwargs:
+            exchange[k] = kwargs[k]
+    exchange_string = create_redis_string_from_dict(exchange)
+    REDIS_STORAGE.set(EXCHANGE_TEMPLATE_KEY.format(user=user_id), exchange_string, ex=SHORT_LIVE_TTL)
+    logger.info(f"Created new exchange from user {user_id} into redis")
+    return exchange
