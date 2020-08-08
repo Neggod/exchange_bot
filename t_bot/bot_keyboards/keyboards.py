@@ -1,5 +1,5 @@
 from django.db.models import QuerySet
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message, ReplyKeyboardRemove
 from payments.models import Currency, PaymentSystem
 
 from t_bot import bot_db
@@ -7,8 +7,8 @@ from t_bot.bot_redis import redis_request
 
 import logging
 
-
 logger = logging.getLogger(__name__)
+
 
 def generate_payment_systems_keyboard():
     markup = InlineKeyboardMarkup()
@@ -34,32 +34,41 @@ def generate_payment_systems_keyboard():
     return markup
 
 
-def generate_currency_keyboard():
+def generate_currency_keyboard(allowed=True):
     markup = InlineKeyboardMarkup()
     try:
-        currency = redis_request.get_currency_from_redis()
+        currency = redis_request.get_currency_from_redis(allowed)
     except ValueError:
-        currency = bot_db.get_all_currencies_from_db()
+        currency = redis_request.get_currency_from_redis_with_db(allowed)
+    if currency:
+        prefix = "currency_from"
+        if not allowed:
+            prefix = "currency_to"
 
-
-    if currency and isinstance(currency[0], str):
         for curr in currency:
             name, value = curr.split("=")
             markup.add(
-                InlineKeyboardButton(name, callback_data=f"currency:{value}"))
+                InlineKeyboardButton(name, callback_data=f"{prefix}:{value}"))
         return markup
-    elif currency and isinstance(currency, QuerySet):
-        for curr in currency:
-            curr: Currency
-            markup.add(InlineKeyboardButton(curr.currency, callback_data=f"currency:{curr.currency_code}"))
-        return markup
-
-    else:
-        logger.warning('Havent currencies in redis and db')
-        return None
+    return None
 
 
 def generate_start_exchanging():
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("Сделать обмен", callback_data="start_exchange"))
+    return markup
+
+
+def remove_keyboards(inline=True):
+    if inline:
+        return None
+    return ReplyKeyboardRemove()
+
+
+def generate_approve_buttons(create_exchange: bool):
+    markup = InlineKeyboardMarkup()
+    if create_exchange:
+        markup.add(InlineKeyboardButton("Да", callback_data="exchange:yes"))
+        markup.add(InlineKeyboardButton("Нет", callback_data="exchange:no"))
+
     return markup

@@ -31,19 +31,27 @@ def get_user_from_redis(msg):
     raise ValueError("Haven't user in cache.")
 
 
-def get_currency_from_redis():
-    currency = REDIS_STORAGE.get('currency')
+def get_currency_from_redis(allowed):
+    if allowed:
+        currency = REDIS_STORAGE.get('currency_from')
+    else:
+        currency = REDIS_STORAGE.get('currency_to')
     if currency:
         return currency.decode("UTF-8").split(":")
     raise ValueError("Havent currency in redis")
 
 
-def set_currency_to_redis(values):
+
+def set_currency_to_redis(values, allowed=True):
+    if allowed:
+        key = "currency_from"
+    else:
+        key = "currency_to"
     if isinstance(values, str):
-        REDIS_STORAGE.set('currency', values, ex=LONG_LIVE_TTL)
+        REDIS_STORAGE.set(key, values, ex=LONG_LIVE_TTL)
     elif isinstance(values, (list, tuple)):
         _values = ":".join(values)
-        REDIS_STORAGE.set('currency', _values, ex=LONG_LIVE_TTL)
+        REDIS_STORAGE.set(key, _values, ex=LONG_LIVE_TTL)
     else:
         raise ValueError(f"Unknown currency value {values}")
 
@@ -72,17 +80,7 @@ def get_api_exchange_system(user_system: str):
     return REDIS_STORAGE.get(user_system).decode("UTF-8")
 
 
-def create_exchange_value_to_redis(*args, **kwargs):
-    """
-    Здесь будет храниться процесс формирования транзакции
-    :param args:
-    :param kwargs:
-    :return:
-    """
-    pass
-
-
-def get_exchange_from_redis(user_id, status=0, *args, **kwargs):
+def get_exchange_from_redis_or_db(user_id, status=0, *args, **kwargs):
     """
     Здесь мы будем дёргать транзакцию из редиса
     :param status:
@@ -158,14 +156,30 @@ def set_payment_systems_to_redis(value):
         raise ValueError(f"Unknown value: {value}")
 
 
-def create_or_update_new_exchange(user_id: int, **kwargs):
+def create_or_update_new_exchange(user, **kwargs):
     # exchange = EXCHANGE_TEMPLATE['user_id'] = user_id
     # тут какой-то метод для добавления в сторадже
-    exchange = get_exchange_from_redis(user_id)
+    exchange = get_exchange_from_redis_or_db(user)
+
     for k in exchange:
         if k in kwargs:
             exchange[k] = kwargs[k]
     exchange_string = create_redis_string_from_dict(exchange)
-    REDIS_STORAGE.set(EXCHANGE_TEMPLATE_KEY.format(user=user_id), exchange_string, ex=SHORT_LIVE_TTL)
-    logger.info(f"Created new exchange from user {user_id} into redis")
+    REDIS_STORAGE.set(EXCHANGE_TEMPLATE_KEY.format(user=user), exchange_string, ex=SHORT_LIVE_TTL)
+    logger.info(f"Created new exchange from user {user} into redis")
     return exchange
+
+
+def get_currency_from_redis_with_db(allowed=True):
+
+    currency_db = bot_db.get_all_currencies_from_db(allowed)
+    redis_string = []
+    for _currency in currency_db:
+        redis_string.append(CURRENCY_TEMPLATE.format(currency=_currency.currency, currency_code=_currency.currency_code))
+    try:
+        set_currency_to_redis(redis_string)
+    except ValueError:
+        logger.error(f"Invalid values in {':'.join(redis_string)}")
+        return None
+    return get_currency_from_redis(allowed)
+

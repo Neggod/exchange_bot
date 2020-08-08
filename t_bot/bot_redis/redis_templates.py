@@ -22,7 +22,7 @@ EXCHANGE_TEMPLATE_VALUE = "currency_from={currency_from}:currency_to={currency_t
 
 SYSTEM_TEMPLATE_KEY = "system:{system}"
 
-CURRENCY_TEMPLATE_KEY = "currency:{currency}"
+CURRENCY_TEMPLATE = "{currency}={currency_code}"
 
 LONG_LIVE_TTL = 60 * 60 * 24         # время жизни постоянных позиций как системы оплаты, валюты
 SHORT_LIVE_TTL = 60 * 20             # время жизни коротких позиций

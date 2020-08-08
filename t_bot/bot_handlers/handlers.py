@@ -1,4 +1,3 @@
-
 comment = """
 В этом модуле только хэндлеры отправкой сообщений и работой с данными занимаются методы
 """
@@ -36,30 +35,33 @@ def get_amount_currency_from_user(msg: Message):
     :param msg:
     :return:
     """
-
-    pass
+    bot_methods.get_amount_currency_from(user_id=msg.from_user.id, currency=msg.text)
 
 
 @bot.callback_query_handler(lambda call: call.data == "start_exchanging")
 def start_exchanging_handler(call: CallbackQuery):
     bot.delete_message(call.message.chat.id, call.message.message_id)
 
-    bot_methods.send_start_exchanging(call.message.from_user.id)
+    bot_methods.send_start_exchanging(call.message.from_user.id, False)
 
 
-@bot.callback_query_handler(lambda call: len(call.data) == 3 and call.data == call.data.upper())
+@bot.callback_query_handler(lambda call: call.data.startswith('currency'))
 def get_currency_from(call: CallbackQuery):
     """
     Ловим валюту списания
     :param call:
     :return:
     """
-    bot.delete_message(call.message.chat.id, call.message.message_id)
 
+    bot.delete_message(call.message.chat.id, call.message.message_id)
+    if "from" in call.data:
+        bot_methods.get_currency_from(call.message.from_user.id, call.data.split(":")[-1])
+    elif 'to' in call.data:
+        bot_methods.get_currency_to(call.message.from_user.id, call.data.split(":")[-1])
 
 
 @bot.callback_query_handler(lambda call: call.data.startswith("system"))
 def get_user_payment_system(call: CallbackQuery):
     bot.delete_message(call.message.chat.id, call.message.message_id)
-    bot_methods.methods.get_user_currency_from(call.message.from_user.id, call.data.split(':')[-1])
+    bot_methods.get_payment_system_from_user(call.message.from_user.id, call.data.split(':')[-1])
     pass

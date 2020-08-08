@@ -24,8 +24,8 @@ def get_user_from_db(msg: Message):
         return user, True
 
 
-def get_all_currencies_from_db():
-    return Currency.objects.all()
+def get_all_currencies_from_db(allowed=True):
+    return Currency.objects.filter(is_user_currency=allowed)
 
 
 def get_all_allowed_for_user_payment_systems():
@@ -40,6 +40,17 @@ def get_all_allowed_for_user_payment_systems():
 #     "status": 0
 # }
 # EXCHANGE_TEMPLATE_VALUE = "currency={currency}:amount={amount}:user_system={user_system}:status={status}"
+
+def get_max_and_min_currency_amount(system):
+    try:
+        payment_system = PaymentSystem.objects.get(pay_system_flag=system)
+    except PaymentSystem.DoesNotExist:
+        logger.error(f"Unknown system code{system}")
+        payment_system = PaymentSystem.objects.get(id=0)
+
+    api = PaymentSystemAPI.objects.get(payment_system=payment_system)
+    return api.min_currency_amount, api.max_currency_amount
+
 
 def get_exchange_from_db(user_id, status=0):
     try:

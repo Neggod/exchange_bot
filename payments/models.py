@@ -72,10 +72,7 @@ class Rate(models.Model):
     rate = models.DecimalField(verbose_name="Курс обмена",
                                help_text='валюта отправления * на курс обмена = валюта получения', max_digits=10,
                                decimal_places=6)
-    min_currency_amount = models.IntegerField(verbose_name="Минимальное значение валюты А", default=100)
-    max_currency_amount = models.IntegerField(verbose_name="Максимальное значение валюты А", default=-1,
-                                              help_text="Указать, если  есть предел у API сиситемя, ОТКУДА "
-                                                        "совершается перевод")
+
 
     def __str__(self):
         return f"Курс обмена {self.currency_from} на {self.currency_to}"
@@ -117,11 +114,14 @@ class PaymentSystemAPI(models.Model):
         (2, 'westallet')
     )
     id = models.IntegerField(verbose_name="Тип апи", choices=_API, default=0, unique=True)
-    name = models.CharField(verbose_name="Название апи", max_length=50)
     payment_system = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система",
                                  help_text="Приоритет для данной системы", on_delete=models.CASCADE)
     rate = models.ForeignKey(Rate, verbose_name="Курс обмена", on_delete=models.DO_NOTHING)
     comission = models.ForeignKey(Comission, on_delete=models.DO_NOTHING, default=50, verbose_name="Комиссия за перевод")
+    min_currency_amount = models.IntegerField(verbose_name="Минимальное значение валюты А", default=100)
+    max_currency_amount = models.IntegerField(verbose_name="Максимальное значение валюты А", default=-1,
+                                              help_text="Указать, если  есть предел у API системы, ОТКУДА "
+                                                        "совершается перевод")
 
     def __str__(self):
         return f"Настройки для АПИ Платёжной системы {self.name}"

@@ -31,13 +31,15 @@ def send_error(user_id):
     return
 
 
-def send_start_exchanging(user_id):
+def send_start_exchanging(user_id, empty_redis_exchange=True):
     """
     It first message for exchanging
     :param user_id: 
     :param user:
     :return:
     """
+    if empty_redis_exchange:
+        bot.send_message(user_id, "Время платёжной сессии истекло. Начните заново")
     bot_redis.create_or_update_new_exchange(user_id)
     kb = bot_keyboards.generate_payment_systems_keyboard()
     if kb:
@@ -47,35 +49,61 @@ def send_start_exchanging(user_id):
     return
 
 
-def get_currency_from():
+def get_currency_from(user_id, currency):
     """
     Here ask user currency from
     :return:
     """
-    pass
+    exchange = bot_redis.create_or_update_new_exchange(user_id, currency_from=currency)
+    if exchange["system"]:
+        kb = bot_keyboards.generate_currency_keyboard(False)
+        if kb:
+            bot.send_message(user_id, bot_messages.CURRENCY_TO_MESSAGE, reply_markup=kb)
+        else:
+            send_error(user_id)
+    else:
+        send_start_exchanging(user_id)
 
 
-def get_amount_currency_from():
+def generate_exchange_text(exchange):
+    text = 'Обмен {amount} {currency_from} на {currency_to}\n\nК оплате: {amount_finish} {currency_from}'
+
+
+
+    return text
+
+
+def get_amount_currency_from(user_id, currency):
     """
     Here ask
     :return:
+
     """
-    pass
+    exchange = bot_redis.create_or_update_new_exchange(user_id, amount=currency)
+    if exchange["system"]:
+        kb = bot_keyboards.keyboards.generate_approve_buttons(create_exchange=True)
+        text = generate_exchange_text(exchange)
+        bot.send_message(user_id, text, reply_markup=kb)
+    else:
+        send_start_exchanging(user_id)
 
 
-def get_payment_system_and_send_currency(user_id):
-    """
-    Here ask user system from
-    :return:
-    """
-    pass
-
-
-def get_currency_to():
+def get_currency_to(user_id, currency):
     """
     Here asc user currency to
     :return:
     """
+    exchange = bot_redis.create_or_update_new_exchange(user_id, currency_to=currency)
+    if exchange["system"]:
+        min_amount, max_amount = bot_db.get_max_and_min_currency_amount(exchange['system'])
+        max_text = ''
+        if max_amount != -1:
+            max_text += f', максимальная сумма - {max_amount}'
+        kb = bot_keyboards.remove_keyboards()
+
+        bot.send_message(user_id, bot_messages.CURRENCY_TO_MESSAGE + max_text + ":", reply_markup=kb)
+    else:
+        send_start_exchanging(user_id)
     pass
 
 
@@ -99,8 +127,14 @@ def approve_last_step(state):
     pass
 
 
-def get_user_currency_from(user_id, payment_system):
-    api = db
+def get_payment_system_from_user(user_id, payment_system):
 
-    exchange = bot_redis.redis_request.create_or_update_new_exchange(user_id=id, payment_system=)
+    exchange = bot_redis.create_or_update_new_exchange(user=user_id, payment_system=payment_system)
+    logger.info(f"Add to redis exchange {exchange} from user {user_id}")
+    kb = bot_keyboards.generate_currency_keyboard()
+    if kb:
+        bot.send_message(user_id, bot_messages.CURRENCY_FROM_MESSAGE, reply_markup=kb)
+    else:
+        send_error(user_id)
+
     return None
