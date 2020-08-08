@@ -65,3 +65,23 @@ def get_user_payment_system(call: CallbackQuery):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     bot_methods.get_payment_system_from_user(call.message.from_user.id, call.data.split(':')[-1])
     pass
+
+@bot.callback_query_handler(lambda call: call.data.startswith("exchange") and
+                                         any(('yes' in call.data, 'no'  in call.data)))
+def get_answer_about_exchange(call):
+    bot.delete_message(call.message.chat.id, call.message.from_user.id)
+    if call.data.split(":")[-1] == 'no':
+        bot_methods.send_start_exchanging(call.message.from_user.id, False)
+    else:
+        bot_methods.methods.request_wallet_or_card_number(user_id=call.message.from_user.id)
+
+@bot.message_handler(func=lambda msg: "@" in msg.text and '.' in msg.text)
+def get_email_handler(msg: Message):
+    bot_methods.methods.get_user_email(user_id=msg.from_user.id, data=msg.text)
+    pass
+
+
+@bot.message_handler(func=lambda msg: True)
+def get_wallet_type_number_or_something(msg: Message):
+    bot_methods.methods.get_wallet_number(user_id=msg.from_user.id, data=msg.text)
+

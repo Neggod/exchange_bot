@@ -17,13 +17,22 @@ comission
 
 
 class PaymentSystem(models.Model):
+
+    _WALLET = (
+        (0, "Кошелёк"),
+        (1, "Карта"),
+        (2, "Номер телефона"),
+        (3, "Адрес криптовалюты")
+    )
     pay_system = models.CharField(verbose_name="Название платёжной системы", help_text="QIWI, YANDEX, etc",
                                   max_length=50)
     pay_system_flag = models.CharField(verbose_name='Короткое название системы на английском языке.',
                                        help_text=' Не больше 10 знаков',
                                        max_length=10)
+    wallet_type = models.IntegerField(choices=_WALLET, default=0, verbose_name="Тип плат")
 
     is_user_payment_system = models.BooleanField(verbose_name="Доступна ли система как пользовательская", default=False)
+    is_needed_email = models.BooleanField(verbose_name="Нужен ли email?", default=True)
 
     def __str__(self):
         return f"Платёжная система: {self.pay_system}"
@@ -166,6 +175,7 @@ class Exchange(models.Model):
     created = models.DateTimeField(verbose_name="Дата создания платежа", auto_now_add=True)
     updated = models.DateTimeField(verbose_name="Дата последнего изменения", auto_now=True)
     status = models.ForeignKey(Status, verbose_name="Статус платежа", on_delete=models.PROTECT)
+    email = models.EmailField(verbose_name="E-mail", blank=True, null=True)
 
     # course = models.DecimalField(verbose_name="Курс обмена",
     #                              help_text='валюта отправления * на курс обмена = валюта получения',

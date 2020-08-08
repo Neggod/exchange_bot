@@ -94,3 +94,12 @@ def save_exchange_from_redis(answer):
                                                        payment_system=payment_system, api=api, currency_to=currency_to)
     logger.info(f"Exchange from user {user} was {'created' if flag else 'updated'}")
     return exchange, flag
+
+
+def get_payment_system(payment_system_code):
+    try:
+        payment_system = PaymentSystem.objects.get(pay_system_flag=payment_system_code)
+    except PaymentSystem.DoesNotExist:
+        logger.error(f"Cannot get payment system with code {payment_system_code}")
+        return None
+    return payment_system

@@ -1,10 +1,13 @@
 # Пока с хэшами не будем заморачиваться
 EXCHANGE_TEMPLATE = {
-    "user": None,
-    "amount": None,
-    "currency_from": None,
-    "currency_to": None,
-    'system': None,
+    "user": '',
+    "amount": '',
+    "currency_from": '',
+    "currency_to": '',
+    'system': '',
+    'wallet': '',
+    'wallet_to': '',
+    "email": '',
     "status": 0
 }
 #
@@ -24,5 +27,5 @@ SYSTEM_TEMPLATE_KEY = "system:{system}"
 
 CURRENCY_TEMPLATE = "{currency}={currency_code}"
 
-LONG_LIVE_TTL = 60 * 60 * 24         # время жизни постоянных позиций как системы оплаты, валюты
-SHORT_LIVE_TTL = 60 * 20             # время жизни коротких позиций
+LONG_LIVE_TTL = 60 * 60 * 24  # время жизни постоянных позиций как системы оплаты, валюты
+SHORT_LIVE_TTL = 60 * 20  # время жизни коротких позиций
