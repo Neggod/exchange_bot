@@ -155,6 +155,11 @@ def set_payment_systems_to_redis(value):
     else:
         raise ValueError(f"Unknown value: {value}")
 
+def delete_user_exchange_from_redis(user_id):
+    if REDIS_STORAGE.exists(EXCHANGE_TEMPLATE_KEY.format(user=user_id)):
+        REDIS_STORAGE.delete(EXCHANGE_TEMPLATE_KEY.format(user=user_id))
+
+
 
 def create_or_update_new_exchange(user, **kwargs):
     # exchange = EXCHANGE_TEMPLATE['user_id'] = user_id
