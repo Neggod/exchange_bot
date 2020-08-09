@@ -4,9 +4,9 @@ from payments.views import *
 from . import views
 
 urlpatterns = [
-    path('qiwi/', qiwi_generate),
-    path('ym/', yandex_money_generate),
+    path('success/', success_payment),
+    path('fail/', fail_payment),
     path('wm/', webmoney_generate),
-    path('<str:system>/', test_generate)
+    path('<str:secret>/', test_generate)
 
 ]

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import QuerySet
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message, ReplyKeyboardRemove
 from payments.models import Currency, PaymentSystem
@@ -71,4 +72,11 @@ def generate_approve_buttons(create_exchange: bool):
         markup.add(InlineKeyboardButton("Да", callback_data="exchange:yes"))
         markup.add(InlineKeyboardButton("Нет", callback_data="exchange:no"))
 
+    return markup
+
+
+def generate_exchange_link(secret:str):
+    link = settings.MY_DOMAIN + f"exchange/{secret}"
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton("Оформить перевод",url=link))
     return markup

@@ -46,7 +46,8 @@ class UserWallet(models.Model):
     owner = models.ForeignKey(TelegramUser, on_delete=models.DO_NOTHING, verbose_name="Пользователь")
     payment_system = models.ForeignKey(PaymentSystem, on_delete=models.DO_NOTHING, related_name="+",
                                        verbose_name="Пользовательская платeжная система")
-    wallet = models.CharField(verbose_name="Номер кошелька или карты", max_length=30, blank=True, null=True)
+    number = models.CharField(verbose_name="Номер кошелька или карты", max_length=100, blank=True, null=True,
+                              unique=True)
 
     def __str__(self):
         return f"Кошелёк пользователя {self.owner} в {self.payment_system}"
@@ -118,11 +119,11 @@ class PaymentSystemAPI(models.Model):
     Cюда добавим
     """
     _API = (
-        (0, 'Обменка'),
-        (1, 'adgroup'),
-        (2, 'westallet')
+        ('obmenka', 'Обменка'),
+        ('adgroup', 'adgroup'),
+        ('westwallet', 'westallet')
     )
-    id = models.IntegerField(verbose_name="Тип апи", choices=_API, default=0, unique=True)
+    name = models.CharField(verbose_name="Тип апи", choices=_API, default=0, unique=True, max_length=35)
     payment_system = models.ForeignKey(PaymentSystem, verbose_name="Платёжная система",
                                  help_text="Приоритет для данной системы", on_delete=models.CASCADE)
     rate = models.ForeignKey(Rate, verbose_name="Курс обмена", on_delete=models.DO_NOTHING)
@@ -131,6 +132,7 @@ class PaymentSystemAPI(models.Model):
     max_currency_amount = models.IntegerField(verbose_name="Максимальное значение валюты А", default=-1,
                                               help_text="Указать, если  есть предел у API системы, ОТКУДА "
                                                         "совершается перевод")
+
 
     def __str__(self):
         return f"Настройки для АПИ Платёжной системы {self.name}"
@@ -158,6 +160,7 @@ class Status(models.Model):
         verbose_name_plural = "Статусы платежей"
 
 
+
 class Exchange(models.Model):
     owner = models.ForeignKey(TelegramUser, verbose_name="", on_delete=models.DO_NOTHING, related_name="telegram_user")
     api = models.ForeignKey(PaymentSystemAPI, related_name="payment_system_from",
@@ -172,10 +175,16 @@ class Exchange(models.Model):
                                  default=Decimal(1.0),
                                  max_digits=10,
                                  decimal_places=5)
+    wallet_from = models.ForeignKey(UserWallet, on_delete=models.DO_NOTHING, related_name='wallet_from',
+                                    verbose_name="Кошелёк источник")
+    wallet_to = models.ForeignKey(UserWallet, on_delete=models.DO_NOTHING, related_name="wallet_to",
+                                  verbose_name="Кошелёк получатель")
     created = models.DateTimeField(verbose_name="Дата создания платежа", auto_now_add=True)
     updated = models.DateTimeField(verbose_name="Дата последнего изменения", auto_now=True)
     status = models.ForeignKey(Status, verbose_name="Статус платежа", on_delete=models.PROTECT)
     email = models.EmailField(verbose_name="E-mail", blank=True, null=True)
+    secret = models.CharField(verbose_name="Уникальный ключ", max_length=40, default=None,
+                              blank=True, null=True, editable=False)
 
     # course = models.DecimalField(verbose_name="Курс обмена",
     #                              help_text='валюта отправления * на курс обмена = валюта получения',

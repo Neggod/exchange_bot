@@ -22,5 +22,5 @@ from t_bot.views import tg_webhook
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('tg/' + TELEGRAM_TOKEN, tg_webhook),
-    path('payment/', include('payments.urls')),
+    path('exchange/', include('payments.urls')),
 ]

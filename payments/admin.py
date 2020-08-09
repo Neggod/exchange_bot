@@ -10,11 +10,11 @@ from payments.models import *
 #     search_fields = ['type', 'amount', 'user', 'status', 'date']
 
 
-@admin.register(PaymentSystemSettings)
+@admin.register(PaymentSystemAPI)
 class PaymentSystemSettingsAdmin(admin.ModelAdmin):
-    list_display = ('payment_system', 'wallet')
+    list_display = ('name', 'payment_system')
 
-    search_fields = ['payment_system', 'wallet']
+    search_fields = ['name', 'payment_system']
 
 
 @admin.register(PaymentSystem)

@@ -195,8 +195,10 @@ def check_wallet_wallet(data: str):
     return False
 
 
-def generate_exchange_request(exchange: dict):
-    pass
+def generate_exchange_request(user_id, exchange: dict):
+    exchange, flag = bot_db.save_exchange_from_redis(exchange)
+    kb = bot_keyboards.keyboards.generate_exchange_link(exchange.secret)
+    bot.send_message(user_id, bot_messages.START_EXCHANGING_MESSAGE, reply_markup=kb)
 
 
 def get_wallet_number(user_id, data):
@@ -231,7 +233,7 @@ def get_wallet_number(user_id, data):
             if system.is_needed_email:
                 bot.send_message(user_id, bot_messages.EMAIL_MESSAGE)
             else:
-                generate_exchange_request(exchange)
+                generate_exchange_request(user_id,exchange)
         else:
             bot.send_message(user_id, bot_messages.ERROR_MESSAGE)
     return
@@ -259,6 +261,6 @@ def get_user_email(user_id, data: str):
         return None
     if check_email(data):
         exchange['email'] = data
-        generate_exchange_request(exchange)
+        generate_exchange_request(user_id, exchange)
     else:
         bot.send_message(user_id, bot_messages.ERROR_MESSAGE)

@@ -1,6 +1,9 @@
 import base64
 import hashlib
 import logging
+import string
+from random import choice
+
 from django.conf import settings
 
 
@@ -21,3 +24,8 @@ def generate_obmenka_sign(form_data: str):
             ) +
             salt).digest()
     ).decode()
+
+def generate_secret():
+    secret = ''.join([choice(string.ascii_letters + string.digits) for _ in range(40)])
+    return secret
+

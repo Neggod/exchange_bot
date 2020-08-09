@@ -8,6 +8,8 @@ from django.shortcuts import render, redirect
 
 # Create your views here.
 # redirect()# TODO!!!
+from payments.models import Exchange
+
 
 @permission_required('admin.can_add_log_entry')
 def qiwi_generate(request: WSGIRequest):
@@ -40,8 +42,8 @@ def ad_system_payment_generate():
 PAYMENT_SYSTEMS = {
 
 }
-
-def validate_form(request: WSGIRequest):
+@permission_required('admin.can_add_log_entry')
+def validate_form(request: WSGIRequest, secret):
     """
     Обработчик формы введенных в бота данных
     :param request:
@@ -59,6 +61,7 @@ def validate_form(request: WSGIRequest):
     # data_string = "".join(data_dict.values())
     # data_dict["SIGN_ORDER"] = ";".join(data_dict.keys())
     # data_dict["SIGN"] = generate_sign(data_string)
+    exchange = Exchange.objects.get(secret=secret)
     return render(request, "payments/payment.html")
 
 

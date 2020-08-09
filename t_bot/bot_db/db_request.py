@@ -1,6 +1,7 @@
 from telebot.types import Message, CallbackQuery
 
-from payments.models import Currency, PaymentSystem, Status, Exchange, PaymentSystemAPI
+from payments.models import Currency, PaymentSystem, Status, Exchange, PaymentSystemAPI, UserWallet
+from payments.utils import generate_secret
 from t_bot.models import TelegramUser
 from t_bot.bot_redis import EXCHANGE_TEMPLATE, EXCHANGE_TEMPLATE_VALUE
 import logging
@@ -90,8 +91,23 @@ def save_exchange_from_redis(answer):
     currency_to = Currency.objects.get(currency_code=answer['currency_to'])
     payment_system = PaymentSystem.objects.get(pay_system_flag=answer['system'])
     api = PaymentSystemAPI.objects.get()
+    wallet_from, _ = UserWallet.objects.get_or_create(owner=user, number=answer['wallet_from'])
+    wallet_to, _ = UserWallet.objects.get_or_create(owner=user, number=answer['wallet_to'])
     exchange, flag = Exchange.objects.update_or_create(owner=user, status=status, currency_from=currency_from,
-                                                       payment_system=payment_system, api=api, currency_to=currency_to)
+                                                       payment_system=payment_system, api=api, currency_to=currency_to,
+                                                       wallet_from=wallet_from, wallet_to=wallet_to)
+    if not exchange.secret:
+        secret = generate_secret()
+        while True:
+            try:
+                Exchange.objects.get(secret=secret)
+            except Exchange.DoesNotExist:
+                exchange.secret = secret
+                exchange.save()
+                break
+            else:
+                continue
+
     logger.info(f"Exchange from user {user} was {'created' if flag else 'updated'}")
     return exchange, flag
 
