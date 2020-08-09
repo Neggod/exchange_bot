@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect
 
 # Create your views here.
 # redirect()# TODO!!!
+from payments import utils
 from payments.models import Exchange
 
 
@@ -62,6 +63,8 @@ def validate_form(request: WSGIRequest, secret):
     # data_dict["SIGN_ORDER"] = ";".join(data_dict.keys())
     # data_dict["SIGN"] = generate_sign(data_string)
     exchange = Exchange.objects.get(secret=secret)
+    api = utils.get_api(exchange)
+    fields: dict =  api.create_request_data_from_exchange(exchange)
     return render(request, "payments/payment.html")
 
 
